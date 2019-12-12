@@ -1,6 +1,6 @@
 package io.chrisdavenport.mules.redis
 
-// import cats.implicits._
+import cats.implicits._
 import cats.effect._
 
 import dev.profunktor.redis4cats.connection.{ RedisClient, RedisURI }
@@ -20,7 +20,8 @@ import java.time.temporal.ChronoUnit.SECONDS
 
 import com.dimafeng.testcontainers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
-
+import io.chrisdavenport.mules.TimeSpec
+import scala.concurrent.duration._
 
 class RedisCacheSpec extends Specification with CatsIO 
   with  ForAllTestContainer {
@@ -48,16 +49,16 @@ class RedisCacheSpec extends Specification with CatsIO
 
   private val stringCodec = RedisCodec.Utf8
 
-  def makeCache : Resource[IO, Cache[IO, String, String]] = for {
+  def makeCache(defaultTimeout: Option[TimeSpec]) : Resource[IO, Cache[IO, String, String]] = for {
     uri <- Resource.liftF(RedisURI.make[IO](s"redis://localhost:$mappedPort"))
     client <- RedisClient[IO](uri)
     redis <- Redis[IO, String, String](client, stringCodec, uri)
-    cache = RedisCache.fromCommands(redis, None)
+    cache = RedisCache.fromCommands(redis, defaultTimeout)
   } yield cache
 
   "RedisCache" should {
     "successfully run an expected operation" in {
-      makeCache.use{ cache => 
+      makeCache(None).use{ cache => 
         for {
           _ <- cache.delete("foo") // Incase of existing key
           out1 <- cache.lookup("foo")
@@ -67,6 +68,47 @@ class RedisCacheSpec extends Specification with CatsIO
           out3 <- cache.lookup("foo")
         } yield (out1, out2, out3)
       }.map(_ must_===((None, Some("bar"), Some("baz"))))
+    }
+
+    "see an expired timeout with insertWithTimeout" in {
+      makeCache(None).use{ cache => 
+        val key = "yellow"
+        for  {
+          _ <- cache.delete(key)
+          _ <- cache.insertWithTimeout(TimeSpec.unsafeFromDuration(2.seconds).some)(key, "value1")
+          out1 <- cache.lookup(key)
+          _ <- Timer[IO].sleep(2.5.seconds)
+          out2 <- cache.lookup(key)
+        } yield (out1, out2)
+      }.map(_ must_===(("value1".some, None)))
+    }
+
+    "see and expired value with defaultTimeout" in {
+      makeCache(TimeSpec.unsafeFromDuration(2.seconds).some).use{ cache => 
+        val key = "red"
+        for  {
+          _ <- cache.delete(key)
+          _ <- cache.insert(key, "value1")
+          out1 <- cache.lookup(key)
+          _ <- Timer[IO].sleep(2.5.seconds)
+          out2 <- cache.lookup(key)
+        } yield (out1, out2)
+      }.map(_ must_===(("value1".some, None)))
+    }
+
+    "see the set value rather than the default" in {
+      makeCache(TimeSpec.unsafeFromDuration(2.seconds).some).use{ cache => 
+        val key = "blue"
+        for  {
+          _ <- cache.delete(key)
+          _ <- cache.insertWithTimeout(TimeSpec.unsafeFromDuration(3.seconds).some)(key, "value1")
+          out1 <- cache.lookup(key)
+          _ <- Timer[IO].sleep(2.5.seconds)
+          out2 <- cache.lookup(key)
+          _ <- Timer[IO].sleep(1.seconds)
+          out3 <- cache.lookup(key)
+        } yield (out1, out2, out3)
+      }.map(_ must_===(("value1".some, "value1".some, None)))
     }
   }
 
