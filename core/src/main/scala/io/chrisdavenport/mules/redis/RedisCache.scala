@@ -26,9 +26,6 @@ object RedisCache {
     def insert(k: K, v: V): F[Unit] = 
       s.set(k, v, SetArgs(None, defaultTimeout.map(n => SetArg.Ttl.Px(n.nanos.nanos))))
         .void
-    def insertWithTimeout(optionTimeout: Option[TimeSpec])(k: K, v: V): F[Unit] =
-      s.set(k, v, SetArgs(None, optionTimeout.map(n => SetArg.Ttl.Px(n.nanos.nanos))))
-        .void
     def lookup(k: K): F[Option[V]] = 
       s.get(k)
     def delete(k: K): F[Unit] = 

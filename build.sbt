@@ -1,11 +1,11 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val catsV = "2.0.0"
-val catsEffectV = "2.0.0"
-val mulesV = "0.3.0"
-val redis4catsV = "0.9.1"
+val catsV = "2.1.1"
+val catsEffectV = "2.1.2"
+val mulesV = "0.4.0"
+val redis4catsV = "0.9.6"
 
-val specs2V = "4.8.1"
+val specs2V = "4.8.3"
 
 val kindProjectorV = "0.11.0"
 val betterMonadicForV = "0.3.1"

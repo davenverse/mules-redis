@@ -47,12 +47,10 @@ class RedisCacheSpec extends Specification with CatsIO
     def info(msg: => String): cats.effect.IO[Unit] = IO.unit
   }
 
-  private val stringCodec = RedisCodec.Utf8
-
   def makeCache(defaultTimeout: Option[TimeSpec]) : Resource[IO, Cache[IO, String, String]] = for {
     uri <- Resource.liftF(RedisURI.make[IO](s"redis://localhost:$mappedPort"))
     client <- RedisClient[IO](uri)
-    redis <- Redis[IO, String, String](client, stringCodec, uri)
+    redis <- Redis[IO, String, String](client,  RedisCodec.Utf8)
     cache = RedisCache.fromCommands(redis, defaultTimeout)
   } yield cache
 
@@ -70,20 +68,8 @@ class RedisCacheSpec extends Specification with CatsIO
       }.map(_ must_===((None, Some("bar"), Some("baz"))))
     }
 
-    "see an expired timeout with insertWithTimeout" in {
-      makeCache(None).use{ cache => 
-        val key = "yellow"
-        for  {
-          _ <- cache.delete(key)
-          _ <- cache.insertWithTimeout(TimeSpec.unsafeFromDuration(2.seconds).some)(key, "value1")
-          out1 <- cache.lookup(key)
-          _ <- Timer[IO].sleep(2.5.seconds)
-          out2 <- cache.lookup(key)
-        } yield (out1, out2)
-      }.map(_ must_===(("value1".some, None)))
-    }
 
-    "see and expired value with defaultTimeout" in {
+    "see an expired value with defaultTimeout" in {
       makeCache(TimeSpec.unsafeFromDuration(2.seconds).some).use{ cache => 
         val key = "red"
         for  {
@@ -101,9 +87,9 @@ class RedisCacheSpec extends Specification with CatsIO
         val key = "blue"
         for  {
           _ <- cache.delete(key)
-          _ <- cache.insertWithTimeout(TimeSpec.unsafeFromDuration(3.seconds).some)(key, "value1")
+          _ <- cache.insert(key, "value1")
           out1 <- cache.lookup(key)
-          _ <- Timer[IO].sleep(2.5.seconds)
+          _ <- Timer[IO].sleep(1.5.seconds)
           out2 <- cache.lookup(key)
           _ <- Timer[IO].sleep(1.seconds)
           out3 <- cache.lookup(key)
