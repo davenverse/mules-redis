@@ -4,8 +4,8 @@ import cats.implicits._
 import cats.effect._
 
 import dev.profunktor.redis4cats.connection.{ RedisClient, RedisURI }
-import dev.profunktor.redis4cats.domain.RedisCodec
-import dev.profunktor.redis4cats.interpreter.Redis
+import dev.profunktor.redis4cats.data.RedisCodec
+import dev.profunktor.redis4cats.Redis
 import dev.profunktor.redis4cats.effect.Log
 import io.chrisdavenport.mules.Cache
 
@@ -50,7 +50,7 @@ class RedisCacheSpec extends Specification with CatsIO
   def makeCache(defaultTimeout: Option[TimeSpec]) : Resource[IO, Cache[IO, String, String]] = for {
     uri <- Resource.liftF(RedisURI.make[IO](s"redis://localhost:$mappedPort"))
     client <- RedisClient[IO](uri)
-    redis <- Redis[IO, String, String](client,  RedisCodec.Utf8)
+    redis <- Redis[IO].fromClient[String, String](client,  RedisCodec.Utf8)
     cache = RedisCache.fromCommands(redis, defaultTimeout)
   } yield cache
 
