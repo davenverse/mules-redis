@@ -1,7 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 val catsV = "2.1.1"
-val catsEffectV = "2.1.3"
+val catsEffectV = "2.1.4"
 val mulesV = "0.4.0"
 val redis4catsV = "0.10.0"
 
