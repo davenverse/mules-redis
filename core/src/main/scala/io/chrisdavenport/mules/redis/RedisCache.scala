@@ -1,7 +1,7 @@
 package io.chrisdavenport.mules.redis
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 import dev.profunktor.redis4cats.algebra.KeyCommands
 import dev.profunktor.redis4cats.algebra.StringCommands
 import dev.profunktor.redis4cats.effects._
