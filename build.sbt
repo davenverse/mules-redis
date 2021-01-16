@@ -7,7 +7,7 @@ val redis4catsV = "0.10.0"
 
 val specs2V = "4.10.0"
 
-val kindProjectorV = "0.11.0"
+val kindProjectorV = "0.11.3"
 val betterMonadicForV = "0.3.1"
 
 // Projects
