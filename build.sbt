@@ -1,8 +1,8 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val catsV = "2.1.1"
+val catsV = "2.7.0"
 val catsEffectV = "2.1.3"
-val mulesV = "0.4.0"
+val mulesV = "0.4.1"
 val redis4catsV = "0.10.0"
 
 val specs2V = "4.10.0"
@@ -72,7 +72,7 @@ lazy val site = project.in(file("site"))
 
 // General Settings
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.1",
+  scalaVersion := "2.13.8",
   crossScalaVersions := Seq(scalaVersion.value, "2.12.10"),
 
   addCompilerPlugin("org.typelevel" %% "kind-projector" % kindProjectorV cross CrossVersion.full),
