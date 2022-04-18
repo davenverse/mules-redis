@@ -5,7 +5,7 @@ val catsEffectV = "2.1.4"
 val mulesV = "0.4.1"
 val redis4catsV = "0.10.3"
 
-val specs2V = "4.10.0"
+val specs2V = "4.10.6"
 
 val kindProjectorV = "0.11.0"
 val betterMonadicForV = "0.3.1"
